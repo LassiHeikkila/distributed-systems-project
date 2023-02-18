@@ -1,0 +1,55 @@
+#!/bin/bash
+
+job="$1"
+
+jobID="$(echo "${job}" | jq .jobID)"
+printf "got job with id \"%s\" from work queue\n" "${jobID}"
+
+jobType="$(echo "${job}" | jq .jobType)"
+
+if [ "${jobType}" != "transcode" ]; then
+    printf "unexpected job type \"%s\"!\n" "${jobType}"
+    exit 1
+fi
+
+sourceEncoding="$(echo "${job}" | jq .sourceEncoding)"
+targetEncoding="$(echo "${job}" | jq .targetEncoding)"
+fileID="$(echo "${job}" | jq .fileID)"
+
+# fetch details about the video file
+if ! videoDetails="$(get-file-details "${fileID}")"; then   
+    echo "failed to fetch video details!"
+    exit 1
+fi
+
+# transcode to target form
+fileEncoding=$(echo "${videoDetails}" | jq .encoding)
+if [ "${fileEncoding}" != "${sourceEncoding}" ]; then
+    printf "downloaded file has different encoding (%s) than expected (%s)!\n" "${fileEncoding}" "${sourceEncoding}"
+    exit 1
+fi
+
+if [[ "${sourceEncoding}" == "mp4" && "${targetEncoding}" == "webm" ]]; then
+    mp4-to-webm "${srcFile}" "${targetFile}"
+elif [[ "${sourceEncoding}" == "webm" && "${targetEncoding}" == "mp4" ]]; then
+    webm-to-mp4 "${srcFile}" "${targetFile}"
+else
+    printf "unsupported transcoding combination: %s -> %s\n" ${sourceEncoding} ${targetEncoding}
+    exit 1
+fi
+
+# create empty temp files for source file and converted file
+srcFile="$(mktemp -p .)"
+targetFile="$(mktemp -p .)"
+
+# download original video
+if ! download-video "${fileID}" "${srcFile}"; then
+    echo "failed to download video file!"
+    exit 1
+fi
+
+# create new video metadata
+newVideoDetails="${videoDetails}"
+
+# upload result
+upload-video "${targetFile}" "${targetEncoding}" ${newVideoDetails}

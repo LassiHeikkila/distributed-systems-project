@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+    printf "You must provide one argument:\n\tFirst: Video ID\n"
+    exit 1
+fi
+
+if [ -z "${VIDEO_DETAILS_PREFIX}" ]; then
+    echo "VIDEO_DETAILS_PREFIX is empty, cannot download video file!"
+    exit 1
+fi
+
+fileID=$1
+
+url="${VIDEO_DETAILS_PREFIX}${fileID}"
+
+curl "${url}"

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+    printf "You must provide one argument:\n\tFirst: input file\n"
+    exit 1
+fi
+
+in=$1
+# Thanks Superuser.com: https://superuser.com/a/841379
+ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "${in}"

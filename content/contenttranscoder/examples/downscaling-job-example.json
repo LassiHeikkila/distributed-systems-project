@@ -1,0 +1,9 @@
+{
+    "jobID": "76503555-ab3a-4b11-8e9c-dc42db7a6f76",
+    "jobType": "downscale",
+    "job": {
+        "sourceResolution": "1920x1080",
+        "targetResolution": "1280x720",
+        "fileID": "59176fb2-96d6-4046-8a20-61e45bbe3b81"
+    }
+}

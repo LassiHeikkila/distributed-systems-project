@@ -1,0 +1,44 @@
+#!/bin/bash
+
+supportedResolutions=("1920x1080" "1280x720" "640x480")
+
+if [ $# -lt 3 ]; then
+    printf "You must provide two arguments:\n\tFirst: input file\n\tSecond: output file\n\tThird: output resolution with format <width>x<height>\n"
+    printf "Supported resolutions are: %s\n" "${supportedResolutions[*]}"
+    exit 1
+fi
+
+in=$1
+out=$2
+currentRes="$(./get-resolution.sh "${in}")"
+targetRes=$3
+
+isSupportedRes() {
+    for r in "${supportedResolutions[@]}"; do
+        if [ "${r}" = "$1" ]; then 
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+if ! isSupportedRes "${currentRes}"; then
+    printf "input file has unsupported resolution!\n"
+    exit 1
+fi
+
+if ! isSupportedRes "${targetRes}"; then
+    printf "output resolution is not supported!\n"
+    exit 1
+fi
+
+if [ "${currentRes}" = "${targetRes}" ]; then
+    printf "current resolution is the same as target resolution, won't downscale!\n"
+    exit 1
+fi
+
+# Thanks Superuser.com: https://superuser.com/a/624564
+ffmpeg -i "${in}" -filter:v scale="${targetRes}" -c:a copy "${out}"
+
+

@@ -1,0 +1,17 @@
+FROM golang AS build
+
+WORKDIR /build
+COPY go.mod /build/go.mod
+COPY go.sum /build/go.sum
+
+RUN go mod download
+
+COPY accountdb /build/accountdb
+COPY accountservice /build/accountservice
+
+RUN go build -o account-service ./accountservice
+
+FROM ubuntu AS ship
+
+WORKDIR /app
+COPY --from=build /build/account-service /app

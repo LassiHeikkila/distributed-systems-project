@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [ $# -lt 2 ]; then
+    printf "You must provide two arguments:\n\tFirst: input file\n\tSecond: output file\n"
+    exit 1
+fi
+
+in=$1
+out=$2
+
+if [ "${in#*.}" != "mp4" ]; then
+    echo "Input file doesn't end in .mp4"
+    exit 1
+fi
+
+if [ "${out#*.}" != "webm" ]; then
+    echo "Output file doesn't end in .webm"
+    exit 1
+fi
+
+# Thanks trac.ffmpeg.org: https://trac.ffmpeg.org/wiki/Encode/VP9
+# Two pass is the recommended method
+ffmpeg -i "${in}" -c:v libvpx-vp9 -b:v 2M -pass 1 -an -f null /dev/null && \
+ffmpeg -i "${in}" -c:v libvpx-vp9 -b:v 2M -pass 2 -c:a libopus "${out}"
+
+# Delete the log file
+rm ffmpeg*.log

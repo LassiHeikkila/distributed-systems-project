@@ -1,0 +1,7 @@
+go 1.19
+
+use (
+	./account // github.com/LassiHeikkila/flmnchll/account
+	./content // github.com/LassiHeikkila/flmnchll/content
+	./helpers // github.com/LassiHeikkila/flmnchll/helpers
+)

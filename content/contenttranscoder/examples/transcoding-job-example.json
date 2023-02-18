@@ -1,0 +1,9 @@
+{
+    "jobID": "1f3c05d8-4e0e-4401-a8d4-31b9be6c2438",
+    "jobType": "transcode",
+    "job": {
+        "sourceEncoding": "mp4",
+        "targetEncoding": "webm",
+        "fileID": "59176fb2-96d6-4046-8a20-61e45bbe3b81"
+    }
+}

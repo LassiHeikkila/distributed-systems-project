@@ -1,0 +1,17 @@
+FROM golang AS build
+
+WORKDIR /build
+COPY go.mod /build/go.mod
+COPY go.sum /build/go.sum
+
+RUN go mod download
+
+COPY contentdb /build/contentdb
+COPY contentprovider /build/contentprovider
+
+RUN go build -o content-provider ./contentprovider
+
+FROM ubuntu AS ship
+
+WORKDIR /app
+COPY --from=build /build/content-provider /app

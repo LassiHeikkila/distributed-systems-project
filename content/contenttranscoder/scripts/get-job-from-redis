@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [ -z "${REDIS_USERNAME}" ]; then
+    echo "REDIS_USERNAME not defined"
+    exit 1
+fi
+
+if [ -z "${REDIS_PASSWORD}" ]; then
+    echo "REDIS_PASSWORD not defined"
+    exit 1
+fi
+
+if [ -z "${REDIS_HOST}" ]; then
+    echo "REDIS_HOST not defined"
+    exit 1
+fi
+
+if [ -z "${REDIS_PORT}" ]; then
+    echo "REDIS_PORT not defined"
+    exit 1
+fi
+
+if [ -z "${REDIS_JOB_QUEUE}" ]; then
+    echo "REDIS_JOB_QUEUE not defined"
+    exit 1
+fi
+
+export REDISCLI_AUTH=${REDIS_PASSWORD}
+
+redis.cli --user "${REDIS_USERNAME}" -h "${REDIS_HOST}" -p "${REDIS_PORT}" BLPOP "${REDIS_JOB_QUEUE}" 0 | tail -n +2
