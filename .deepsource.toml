@@ -1,0 +1,30 @@
+version = 1
+
+[[analyzers]]
+name = "shell"
+
+[[analyzers]]
+name = "javascript"
+
+  [analyzers.meta]
+  plugins = ["react"]
+
+[[analyzers]]
+name = "go"
+
+  [analyzers.meta]
+  import_root = "github.com/LassiHeikkila/flmnchll"
+  import_paths = [
+    "github.com/LassiHeikkila/flmnchll/account",
+    "github.com/LassiHeikkila/flmnchll/content"
+  ]
+
+[[analyzers]]
+name = "docker"
+
+  [analyzers.meta]
+  dockerfile_paths = [
+    "account/Dockerfile.accountservice",
+    "content/Dockerfile.contentprovider",
+    "content/contenttranscoder/Dockerfile"
+  ]
