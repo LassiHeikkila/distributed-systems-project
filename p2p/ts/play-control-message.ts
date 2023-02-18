@@ -6,12 +6,12 @@ enum ControlMessageType {
 
 class ControlMessage {
     messageType: ControlMessageType;
-    message: ControlMessagePlay | ControlMessagePause | ControlMessageSetTime
+    message: ControlMessagePlay | ControlMessagePause | ControlMessageSetCurrentTime
 
     constructor(
         public obj: {
             messageType: ControlMessageType
-            message: ControlMessagePlay | ControlMessagePause | ControlMessageSetTime
+            message: ControlMessagePlay | ControlMessagePause | ControlMessageSetCurrentTime
         }
     ) {
         
