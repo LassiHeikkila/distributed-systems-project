@@ -7,6 +7,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
+	golang.org/x/crypto v0.6.0
 	gorm.io/driver/sqlite v1.4.4
 	gorm.io/gorm v1.24.5
 )

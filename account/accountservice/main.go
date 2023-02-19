@@ -59,14 +59,21 @@ func main() {
 	originsOK := handlers.AllowedOrigins(httputils.ParseAllowedOrigins(allowedCORSOrigins))
 	methodsOK := handlers.AllowedMethods([]string{http.MethodPost, http.MethodGet, http.MethodPut, http.MethodDelete})
 
-	// r.HandleFunc("/video/download/{id}", VideoDownloadHandler).
-	// 	Methods(http.MethodGet)
-	// r.HandleFunc("/video/info/{id}", VideoMetadataHandler).
-	// 	Methods(http.MethodGet)
-	// r.HandleFunc("/video/subtitles/{id}/{language}", VideoSubtitleHandler).
-	// 	Methods(http.MethodGet)
-	// r.HandleFunc("/video/search", VideoSearchHandler).
-	// 	Methods(http.MethodGet)
+	// signup cannot require authentication (unless its some static API key known by the frontend)
+	r.HandleFunc("/account/signup", SignupHandler).
+		Methods(http.MethodPost)
+
+	// the rest need to be authenticated
+	r.HandleFunc("/account/info/{id}", AccountInfoHandler).
+		Methods(http.MethodGet)
+	r.HandleFunc("/account/info/{id}", AccountInfoUpdateHandler).
+		Methods(http.MethodPut)
+	r.HandleFunc("/account/info/{id}", AccountInfoDeleteHandler).
+		Methods(http.MethodDelete)
+	r.HandleFunc("/auth/validate", TokenAuthenticateHandler).
+		Methods(http.MethodGet)
+	r.HandleFunc("/auth/invalidate", TokenDeauthenticateHandler).
+		Methods(http.MethodPost)
 
 	s := &http.Server{
 		Handler: handlers.CombinedLoggingHandler(

@@ -3,16 +3,7 @@ package accountdb
 import (
 	"errors"
 
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
-)
-
-var (
-	dbHandle *gorm.DB
-
-	ErrNoDBConnection  = errors.New("no connection to database")
-	ErrAccountNotFound = errors.New("account not found")
 )
 
 // keep it simple, just one big table with all the accounts
@@ -24,40 +15,6 @@ type Account struct {
 	UserID       string `json:"fileID" gorm:"unique;not null;<-:create"`
 	Username     string `json:"username" gorm:"unique;not null"`
 	PasswordHash string `json:"passwordHash" gorm:"not null"`
-}
-
-func Connect(path string) error {
-	db, err := gorm.Open(sqlite.Open(path), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Silent),
-	})
-	if err != nil {
-		return err
-	}
-	dbHandle = db
-
-	return nil
-}
-
-func Init() error {
-	if dbHandle == nil {
-		return ErrNoDBConnection
-	}
-
-	err := dbHandle.AutoMigrate(&Account{})
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func Disconnect() error {
-	if dbHandle == nil {
-		return nil
-	}
-
-	dbHandle = nil
-	return nil
 }
 
 // CRUD
@@ -131,4 +88,20 @@ func DeleteAccount(id string) error {
 	}
 
 	return nil
+}
+
+func UsernameTaken(n string) (bool, error) {
+	if dbHandle == nil {
+		return false, ErrNoDBConnection
+	}
+
+	result := dbHandle.First(&Account{}, "username = ?", n)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return true, nil
+	}
+	if result.Error != nil {
+		return false, result.Error
+	}
+
+	return false, nil
 }
