@@ -4,4 +4,5 @@ use (
 	./account // github.com/LassiHeikkila/flmnchll/account
 	./content // github.com/LassiHeikkila/flmnchll/content
 	./helpers // github.com/LassiHeikkila/flmnchll/helpers
+	./room    // github.com/LassiHeikkila/flmnchll/room
 )

@@ -63,16 +63,21 @@ func main() {
 	r.HandleFunc("/account/signup", SignupHandler).
 		Methods(http.MethodPost)
 
+	// look up account details based on token, will be used by other flmnchll services
+	// not sure if this is the best way to do it, but it ought to work for now
+	r.HandleFunc("/account/lookup/{token}", AccountLookupHandler).
+		Methods(http.MethodGet)
+
 	// the rest need to be authenticated
-	r.HandleFunc("/account/info/{id}", AccountInfoHandler).
+	r.Handle("/account/info/{id}", NewAuthMiddleware(AccountInfoHandler)).
 		Methods(http.MethodGet)
-	r.HandleFunc("/account/info/{id}", AccountInfoUpdateHandler).
+	r.Handle("/account/info/{id}", NewAuthMiddleware(AccountInfoUpdateHandler)).
 		Methods(http.MethodPut)
-	r.HandleFunc("/account/info/{id}", AccountInfoDeleteHandler).
+	r.Handle("/account/info/{id}", NewAuthMiddleware(AccountInfoDeleteHandler)).
 		Methods(http.MethodDelete)
-	r.HandleFunc("/auth/validate", TokenAuthenticateHandler).
+	r.Handle("/auth/validate", NewAuthMiddleware(TokenAuthenticateHandler)).
 		Methods(http.MethodGet)
-	r.HandleFunc("/auth/invalidate", TokenDeauthenticateHandler).
+	r.Handle("/auth/invalidate", NewAuthMiddleware(TokenDeauthenticateHandler)).
 		Methods(http.MethodPost)
 
 	s := &http.Server{

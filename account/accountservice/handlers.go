@@ -97,6 +97,33 @@ func AccountInfoHandler(w http.ResponseWriter, req *http.Request) {
 	_ = e.Encode(a)
 }
 
+func AccountLookupHandler(w http.ResponseWriter, req *http.Request) {
+	// GET
+	// account token in URL variables
+	token := mux.Vars(req)["token"]
+
+	userId, err := accountdb.AuthenticateToken(token)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(databaseError))
+		return
+	}
+
+	a, err := accountdb.GetAccount(userId)
+	if errors.Is(err, accountdb.ErrAccountNotFound) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(accountWithIdNotFound))
+		return
+	} else if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(databaseError))
+		return
+	}
+
+	e := json.NewEncoder(w)
+	_ = e.Encode(a)
+}
+
 func AccountInfoUpdateHandler(w http.ResponseWriter, req *http.Request) {
 	// PUT
 	// account id in URL variables
