@@ -107,6 +107,9 @@ func AccountInfoUpdateHandler(w http.ResponseWriter, req *http.Request) {
 		_, _ = w.Write([]byte(forbiddenError))
 		return
 	}
+
+	w.WriteHeader(http.StatusNotImplemented)
+	_, _ = w.Write([]byte(unimplementedError))
 }
 
 func AccountInfoDeleteHandler(w http.ResponseWriter, req *http.Request) {
@@ -120,6 +123,18 @@ func AccountInfoDeleteHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	err := accountdb.DeleteAccount(id)
+	if errors.Is(err, accountdb.ErrAccountNotFound) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(accountWithIdNotFound))
+		return
+	} else if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(databaseError))
+		return
+	}
+
+	_, _ = w.Write([]byte(genericOK))
 }
 
 func TokenAuthenticateHandler(w http.ResponseWriter, req *http.Request) {
