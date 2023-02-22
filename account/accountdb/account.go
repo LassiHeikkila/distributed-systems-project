@@ -15,6 +15,7 @@ type Account struct {
 	UserID       string `json:"fileID" gorm:"unique;not null;<-:create"`
 	Username     string `json:"username" gorm:"unique;not null"`
 	PasswordHash string `json:"passwordHash" gorm:"not null"`
+	IsAdmin      bool   `json:"-"`
 }
 
 // CRUD
@@ -104,4 +105,13 @@ func UsernameTaken(n string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func UserIsAdmin(id string) (bool, error) {
+	a, err := GetAccount(id)
+	if err != nil {
+		return false, err
+	}
+
+	return a.IsAdmin, nil
 }

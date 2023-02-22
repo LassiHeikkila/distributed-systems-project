@@ -134,4 +134,17 @@ func TokenDeauthenticateHandler(w http.ResponseWriter, req *http.Request) {
 	// POST, read body
 	// body contains tokens to deauthenticate, one per line
 	// also accept wildcard "*" to deauthenticate every token for the user
+	authToken := GetAuthToken(req)
+	// ignore error, auth middleware has already done the work once, we just need to get the account id again
+	userId, _ := accountdb.AuthenticateToken(authToken)
+
+	defer req.Body.Close()
+	err := invalidateTokens(req.Body, userId)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(fmt.Sprintf(genericErrorFmt, err.Error())))
+		return
+	}
+
+	_, _ = w.Write([]byte(genericOK))
 }

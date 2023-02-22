@@ -9,5 +9,6 @@ const (
 	forbiddenError        = `{"ok":false,"msg":"access forbidden"}`
 
 	genericOK                 = `{"ok":true}`
+	genericErrorFmt           = `{"ok":false,"msg":"%s"}`
 	accountCreationSuccessFmt = `{"ok":true,"msg":"account created successfully","id":"%s"}`
 )
