@@ -23,15 +23,18 @@ func NewAuthMiddleware(next func(http.ResponseWriter, *http.Request)) *AuthMw {
 }
 
 func (a *AuthMw) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	v := req.Header.Get(authHeaderKey)
-	v = strings.TrimPrefix(v, bearerPrefix)
-
-	_, err := accountdb.AuthenticateToken(v)
+	_, err := accountdb.AuthenticateToken(GetAuthToken(req))
 	if err != nil {
 		// log something?
 		// since AuthenticateToken returned an error, the token is not valid
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write([]byte(unauthorizedError))
 		return
 	}
 
 	a.next(w, req)
+}
+
+func GetAuthToken(req *http.Request) string {
+	return strings.TrimPrefix(req.Header.Get(authHeaderKey), bearerPrefix)
 }

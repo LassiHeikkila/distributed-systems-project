@@ -72,8 +72,15 @@ func SignupHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func AccountInfoHandler(w http.ResponseWriter, req *http.Request) {
-	// GET, account id in URL variables
+	// GET
+	// account id in URL variables
 	id := mux.Vars(req)["id"]
+
+	if !tokenMatchesUserId(GetAuthToken(req), id) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = w.Write([]byte(forbiddenError))
+		return
+	}
 
 	a, err := accountdb.GetAccount(id)
 	if errors.Is(err, accountdb.ErrAccountNotFound) {
@@ -92,10 +99,27 @@ func AccountInfoHandler(w http.ResponseWriter, req *http.Request) {
 
 func AccountInfoUpdateHandler(w http.ResponseWriter, req *http.Request) {
 	// PUT
+	// account id in URL variables
+	id := mux.Vars(req)["id"]
+
+	if !tokenMatchesUserId(GetAuthToken(req), id) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = w.Write([]byte(forbiddenError))
+		return
+	}
 }
 
 func AccountInfoDeleteHandler(w http.ResponseWriter, req *http.Request) {
 	// DELETE
+	// account id in URL variables
+	id := mux.Vars(req)["id"]
+
+	if !tokenMatchesUserId(GetAuthToken(req), id) {
+		w.WriteHeader(http.StatusForbidden)
+		_, _ = w.Write([]byte(forbiddenError))
+		return
+	}
+
 }
 
 func TokenAuthenticateHandler(w http.ResponseWriter, req *http.Request) {
