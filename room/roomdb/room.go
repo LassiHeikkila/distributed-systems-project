@@ -2,6 +2,7 @@ package roomdb
 
 import (
 	"errors"
+	"fmt"
 	"time"
 )
 
@@ -17,12 +18,16 @@ type Room struct {
 }
 
 func CreateRoom() (*Room, error) {
+	peerServer, err := SelectAvailablePeerServer()
+	if err != nil {
+		return nil, fmt.Errorf("cannot create room, peer server not available: %w", err)
+	}
 	r := &Room{
 		ID:             GenerateUUID(),
 		CreatedAt:      time.Now().UTC(),
 		UpdatedAt:      time.Now().UTC(),
 		ShortID:        GenerateShortID(),
-		PeerServerAddr: SelectAvailablePeerServer().GetAddress(),
+		PeerServerAddr: peerServer.Address(),
 	}
 
 	return r, errors.New("unimplemented")
