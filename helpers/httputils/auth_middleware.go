@@ -1,4 +1,4 @@
-package main
+package httputils
 
 import (
 	"net/http"
@@ -10,6 +10,8 @@ import (
 const (
 	authHeaderKey = "Authorization"
 	bearerPrefix  = "Bearer "
+
+	unauthorizedError = `{"ok":false,"msg":"you must provide authentication bearer token with Authorization header"}`
 )
 
 type AuthMw struct {

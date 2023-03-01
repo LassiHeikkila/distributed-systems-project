@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/LassiHeikkila/flmnchll/account/accountdb"
+	"github.com/LassiHeikkila/flmnchll/helpers/httputils"
 )
 
 const (
@@ -76,7 +77,7 @@ func AccountInfoHandler(w http.ResponseWriter, req *http.Request) {
 	// account id in URL variables
 	id := mux.Vars(req)["id"]
 
-	if !tokenMatchesUserId(GetAuthToken(req), id) {
+	if !tokenMatchesUserId(httputils.GetAuthToken(req), id) {
 		w.WriteHeader(http.StatusForbidden)
 		_, _ = w.Write([]byte(forbiddenError))
 		return
@@ -129,7 +130,7 @@ func AccountInfoUpdateHandler(w http.ResponseWriter, req *http.Request) {
 	// account id in URL variables
 	id := mux.Vars(req)["id"]
 
-	if !tokenMatchesUserId(GetAuthToken(req), id) {
+	if !tokenMatchesUserId(httputils.GetAuthToken(req), id) {
 		w.WriteHeader(http.StatusForbidden)
 		_, _ = w.Write([]byte(forbiddenError))
 		return
@@ -144,7 +145,7 @@ func AccountInfoDeleteHandler(w http.ResponseWriter, req *http.Request) {
 	// account id in URL variables
 	id := mux.Vars(req)["id"]
 
-	if !tokenMatchesUserId(GetAuthToken(req), id) {
+	if !tokenMatchesUserId(httputils.GetAuthToken(req), id) {
 		w.WriteHeader(http.StatusForbidden)
 		_, _ = w.Write([]byte(forbiddenError))
 		return
@@ -176,7 +177,7 @@ func TokenDeauthenticateHandler(w http.ResponseWriter, req *http.Request) {
 	// POST, read body
 	// body contains tokens to deauthenticate, one per line
 	// also accept wildcard "*" to deauthenticate every token for the user
-	authToken := GetAuthToken(req)
+	authToken := httputils.GetAuthToken(req)
 	// ignore error, auth middleware has already done the work once, we just need to get the account id again
 	userId, _ := accountdb.AuthenticateToken(authToken)
 

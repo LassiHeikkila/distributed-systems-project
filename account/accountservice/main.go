@@ -69,15 +69,15 @@ func main() {
 		Methods(http.MethodGet)
 
 	// the rest need to be authenticated
-	r.Handle("/account/info/{id}", NewAuthMiddleware(AccountInfoHandler)).
+	r.Handle("/account/info/{id}", httputils.NewAuthMiddleware(AccountInfoHandler)).
 		Methods(http.MethodGet)
-	r.Handle("/account/info/{id}", NewAuthMiddleware(AccountInfoUpdateHandler)).
+	r.Handle("/account/info/{id}", httputils.NewAuthMiddleware(AccountInfoUpdateHandler)).
 		Methods(http.MethodPut)
-	r.Handle("/account/info/{id}", NewAuthMiddleware(AccountInfoDeleteHandler)).
+	r.Handle("/account/info/{id}", httputils.NewAuthMiddleware(AccountInfoDeleteHandler)).
 		Methods(http.MethodDelete)
-	r.Handle("/auth/validate", NewAuthMiddleware(TokenAuthenticateHandler)).
+	r.Handle("/auth/validate", httputils.NewAuthMiddleware(TokenAuthenticateHandler)).
 		Methods(http.MethodGet)
-	r.Handle("/auth/invalidate", NewAuthMiddleware(TokenDeauthenticateHandler)).
+	r.Handle("/auth/invalidate", httputils.NewAuthMiddleware(TokenDeauthenticateHandler)).
 		Methods(http.MethodPost)
 
 	s := &http.Server{

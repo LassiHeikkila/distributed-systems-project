@@ -39,7 +39,7 @@ func invalidateTokens(r io.Reader, userId string) error {
 			t := s.Text()
 			// invalidate the token in s.Text() *if* it matches with userId
 			if !tokenMatchesUserId(t, userId) {
-				return errors.New(unauthorizedError)
+				return errors.New("user is not allowed to revoke this token")
 			}
 			err := accountdb.RevokeToken(t)
 			if err != nil {

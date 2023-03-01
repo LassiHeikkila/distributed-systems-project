@@ -26,6 +26,7 @@ func GetAvailablePeerServers() []PeerServer {
 			},
 		}
 	}
+
 	return nil
 }
 
