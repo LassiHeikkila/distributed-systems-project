@@ -13,11 +13,58 @@ type User struct {
 	UpdatedAt time.Time
 	DeletedAt time.Time
 	RoomID    string
+	PeerId    string
 	Name      string
 }
 
-func CreateUser() (*User, error) {
-	return nil, errors.New("unimplemented")
+func CreateUser(id string, name string) (*User, error) {
+	if dbHandle == nil {
+		return nil, ErrNoDBConnection
+	}
+
+	u := User{
+		ID:        id,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+		RoomID:    "",
+		PeerId:    GenerateUUID(),
+		Name:      name,
+	}
+
+	return &u, nil
+}
+
+func GetUser(id string) (*User, error) {
+	if dbHandle == nil {
+		return nil, ErrNoDBConnection
+	}
+
+	var u User
+	result := dbHandle.First(&u, "id = ?", id)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, ErrAccountNotFound
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &u, nil
+}
+
+func DeleteUser(id string) error {
+	if dbHandle == nil {
+		return ErrNoDBConnection
+	}
+
+	result := dbHandle.Delete(&User{}, "id = ?", id)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return ErrAccountNotFound
+	}
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }
 
 func (u *User) JoinRoom(id string) error {

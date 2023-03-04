@@ -9,7 +9,8 @@ const (
 	forbiddenError     = `{"ok":false,"msg":"access forbidden"}`
 	unimplementedError = `{"ok":false,"msg":"unimplemented feature"}`
 
-	genericOK                 = `{"ok":true}`
-	genericErrorFmt           = `{"ok":false,"msg":"%s"}`
-	accountCreationSuccessFmt = `{"ok":true,"msg":"account created successfully","id":"%s"}`
+	genericOK                   = `{"ok":true}`
+	genericOKWithKVStringFmtFmt = `{"ok":true,"%s":"%s"}`
+	genericErrorFmt             = `{"ok":false,"msg":"%s"}`
+	accountCreationSuccessFmt   = `{"ok":true,"msg":"account created successfully","id":"%s"}`
 )

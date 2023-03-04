@@ -22,12 +22,23 @@ var (
 	videoFileDirectory = ""
 )
 
+const (
+	serviceSecretEnvKey = "account_service_internal_api_secret"
+)
+
 func main() {
 	var (
 		dbPath             string
 		allowedCORSOrigins string
 		httpPort           uint
+		serviceSecret      string = os.Getenv(serviceSecretEnvKey)
 	)
+
+	if serviceSecret == "" {
+		fmt.Println("internal API secret not defined, generating...")
+		serviceSecret = accountdb.GenerateUUID()
+		fmt.Println("internal API secret is:", serviceSecret)
+	}
 
 	flag.StringVar(&dbPath, "db", "content.db", "Path to database file")
 	flag.StringVar(&videoFileDirectory, "contentDir", ".", "Directory where video files are stored")
@@ -79,6 +90,9 @@ func main() {
 		Methods(http.MethodGet)
 	r.Handle("/auth/invalidate", httputils.NewAuthMiddleware(TokenDeauthenticateHandler)).
 		Methods(http.MethodPost)
+
+	r.Handle("/internal/token/validate/{token}", httputils.NewServiceAuthMiddleware(serviceSecret, ServiceHandlerValidateToken)).
+		Methods(http.MethodGet)
 
 	s := &http.Server{
 		Handler: handlers.CombinedLoggingHandler(

@@ -8,15 +8,13 @@ import (
 )
 
 type AuthToken struct {
-	gorm.Model
-
-	Value     string `gorm:"unique;not null`
-	UserID    string `gorm:"not null"`
+	Value     string `gorm:"primaryKey;unique;not null"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+	UserID    string         `gorm:"not null"`
 	ExpiresAt time.Time
 }
-
-// Note: AuthToken schema is nowhere near optimal,
-// Value field should probably be the primary key.
 
 func CreateNewTokenForUserID(id string, expiresAt time.Time) (string, error) {
 	if dbHandle == nil {
