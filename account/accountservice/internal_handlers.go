@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -24,4 +26,22 @@ func ServiceHandlerValidateToken(w http.ResponseWriter, req *http.Request) {
 		"userID",
 		userID,
 	)))
+}
+
+func ServiceHandlerAccountLookup(w http.ResponseWriter, req *http.Request) {
+	userID := mux.Vars(req)["id"]
+
+	a, err := accountdb.GetAccount(userID)
+	if errors.Is(err, accountdb.ErrAccountNotFound) {
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(accountWithIdNotFound))
+		return
+	} else if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		_, _ = w.Write([]byte(databaseError))
+		return
+	}
+
+	e := json.NewEncoder(w)
+	_ = e.Encode(a)
 }

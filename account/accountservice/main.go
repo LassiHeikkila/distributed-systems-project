@@ -93,6 +93,8 @@ func main() {
 
 	r.Handle("/internal/token/validate/{token}", httputils.NewServiceAuthMiddleware(serviceSecret, ServiceHandlerValidateToken)).
 		Methods(http.MethodGet)
+	r.Handle("/internal/account/info/{id}", httputils.NewServiceAuthMiddleware(serviceSecret, ServiceHandlerAccountLookup)).
+		Methods(http.MethodGet)
 
 	s := &http.Server{
 		Handler: handlers.CombinedLoggingHandler(
