@@ -2,8 +2,6 @@ package main
 
 import (
 	"flag"
-
-	"github.com/LassiHeikkila/flmnchll/room/roomdb"
 )
 
 func main() {
@@ -14,6 +12,6 @@ func main() {
 	flag.StringVar(&peerServerAddr, "peerjs", "", "Address of PeerJS server")
 
 	if peerServerAddr != "" {
-		roomdb.RegisterPeerServer(peerServerAddr)
+		RegisterPeerServer(peerServerAddr)
 	}
 }

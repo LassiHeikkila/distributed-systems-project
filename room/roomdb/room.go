@@ -2,7 +2,6 @@ package roomdb
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -12,7 +11,7 @@ type Room struct {
 	ID                string `gorm:"primaryKey;not null;unique"`
 	CreatedAt         time.Time
 	UpdatedAt         time.Time
-	DeletedAt         time.Time
+	DeletedAt         gorm.DeletedAt
 	ShortID           string `gorm:"unique"`
 	PeerServerAddr    string
 	SelectedContentId string
@@ -20,21 +19,17 @@ type Room struct {
 	Members           []User
 }
 
-func CreateRoom(owner User) (*Room, error) {
+func CreateRoom(owner User, peerServerAddr string) (*Room, error) {
 	if dbHandle == nil {
 		return nil, ErrNoDBConnection
 	}
 
-	peerServer, err := SelectAvailablePeerServer()
-	if err != nil {
-		return nil, fmt.Errorf("cannot create room, peer server not available: %w", err)
-	}
 	r := &Room{
 		ID:             GenerateUUID(),
 		CreatedAt:      time.Now().UTC(),
 		UpdatedAt:      time.Now().UTC(),
 		ShortID:        GenerateShortID(),
-		PeerServerAddr: peerServer.Address(),
+		PeerServerAddr: peerServerAddr,
 		Owner:          owner,
 	}
 

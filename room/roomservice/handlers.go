@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/LassiHeikkila/flmnchll/account/accountdb"
+	"github.com/gorilla/mux"
+
+	"github.com/LassiHeikkila/flmnchll/account/accountservice/accountclient"
 	"github.com/LassiHeikkila/flmnchll/helpers/httputils"
 	"github.com/LassiHeikkila/flmnchll/room/roomdb"
-	"github.com/gorilla/mux"
 )
 
 // Needed API endpoints:
@@ -28,19 +29,70 @@ import (
 //  - add user to room
 // - room having content selected
 
-func CreateRoomHandler(w http.ResponseWriter, req *http.Request) {}
+func CreateRoomHandler(w http.ResponseWriter, req *http.Request) {
+	// select peer server for the room
+	peerServer, err := SelectAvailablePeerServer()
+	if err != nil {
+		w.WriteHeader(http.StatusServiceUnavailable)
+		w.Write([]byte(peerServerUnavailable))
+		return
+	}
+
+	// check user is authenticated and get their id
+	userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(forbiddenError))
+		return
+	}
+
+	// get user object from roomdb
+	u, err := roomdb.GetUser(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(userWithIdNotFound))
+		return
+	}
+
+	r, err := roomdb.CreateRoom(*u, peerServer.Address())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(databaseError))
+		return
+	}
+
+	e := json.NewEncoder(w)
+	e.Encode(NewOKResponseWithDetails(map[string]any{
+		"roomID":  r.ID,
+		"shortID": r.ShortID,
+	}))
+}
 
 func DeleteRoomHandler(w http.ResponseWriter, req *http.Request) {}
 
 func SetRoomSelectedContentHandler(w http.ResponseWriter, req *http.Request) {}
 
-func JoinRoomHandler(w http.ResponseWriter, req *http.Request) {}
+func JoinRoomHandler(w http.ResponseWriter, req *http.Request) {
+	// check user is authenticated and get their id
+	userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(forbiddenError))
+		return
+	}
+
+	// get room id from query parameters
+	// account id in URL variables
+	roomID := mux.Vars(req)["id"]
+
+	u, err := roomdb.GetUser(userID)
+}
 
 func LeaveRoomHandler(w http.ResponseWriter, req *http.Request) {}
 
 func GetRoomDetailsHandler(w http.ResponseWriter, req *http.Request) {
-	// check user is authenticated
-	userID, err := accountdb.AuthenticateToken(httputils.GetAuthToken(req))
+	// check user is authenticated and get their id
+	userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte(forbiddenError))
@@ -85,8 +137,8 @@ func GetRoomDetailsHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetCurrentRoomHandler(w http.ResponseWriter, req *http.Request) {
-	// check user is authenticated
-	userID, err := accountdb.AuthenticateToken(httputils.GetAuthToken(req))
+	// check user is authenticated and get their id
+	userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
 	if err != nil {
 		w.WriteHeader(http.StatusForbidden)
 		w.Write([]byte(forbiddenError))

@@ -1,4 +1,4 @@
-package roomdb
+package main
 
 import (
 	"errors"

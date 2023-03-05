@@ -11,7 +11,7 @@ type User struct {
 	ID        string `gorm:"primaryKey;not null;unique"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
-	DeletedAt time.Time
+	DeletedAt gorm.DeletedAt
 	RoomID    string
 	PeerId    string
 	Name      string
