@@ -14,7 +14,7 @@ type Account struct {
 
 	UserID       string `json:"userID" gorm:"unique;not null;<-:create"`
 	Username     string `json:"username" gorm:"unique;not null"`
-	PasswordHash string `json:"passwordHash" gorm:"not null"`
+	PasswordHash string `json:"-" gorm:"not null"`
 	IsAdmin      bool   `json:"-"`
 }
 
