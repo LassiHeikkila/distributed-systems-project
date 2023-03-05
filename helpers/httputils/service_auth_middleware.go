@@ -10,7 +10,9 @@ const (
 )
 
 type ServiceAuthMw struct {
-	// TODO: improve this so it's not just a static secret
+	// TODO: improve this so it's not just using a static secret
+	// maybe it should check database or validate JWT or something
+
 	// secret should be some very long random string
 	// it should only be used for internal service<->service API calls
 	secret string
