@@ -138,6 +138,8 @@ func AccountInfoUpdateHandler(w http.ResponseWriter, req *http.Request) {
 
 	w.WriteHeader(http.StatusNotImplemented)
 	_, _ = w.Write([]byte(unimplementedError))
+
+	// TODO: implement account detail updates
 }
 
 func AccountInfoDeleteHandler(w http.ResponseWriter, req *http.Request) {
