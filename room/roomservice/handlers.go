@@ -68,9 +68,94 @@ func CreateRoomHandler(w http.ResponseWriter, req *http.Request) {
 	}))
 }
 
-func DeleteRoomHandler(w http.ResponseWriter, req *http.Request) {}
+func DeleteRoomHandler(w http.ResponseWriter, req *http.Request) {
+	// check user is authenticated and get their id
+	userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(forbiddenError))
+		return
+	}
 
-func SetRoomSelectedContentHandler(w http.ResponseWriter, req *http.Request) {}
+	// get room id from query parameters
+	// account id in URL variables
+	roomID := mux.Vars(req)["id"]
+
+	u, err := roomdb.GetUser(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(userWithIdNotFound))
+		return
+	}
+
+	r, err := roomdb.GetRoom(roomID, true)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(roomWithIdNotFound))
+		return
+	}
+
+	if r.Owner.ID != u.ID {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(forbiddenError))
+		return
+	}
+
+	err = roomdb.DeleteRoom(r.ID, false)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(databaseError))
+		return
+	}
+
+	w.Write([]byte(genericOK))
+}
+
+func SetRoomSelectedContentHandler(w http.ResponseWriter, req *http.Request) {
+	// for now, only the owner can select the content
+	// check user is authenticated and get their id
+	userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(forbiddenError))
+		return
+	}
+
+	// get room id from query parameters
+	// account id in URL variables
+	roomID := mux.Vars(req)["roomID"]
+	contentID := mux.Vars(req)["contentID"]
+
+	u, err := roomdb.GetUser(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(userWithIdNotFound))
+		return
+	}
+
+	r, err := roomdb.GetRoom(roomID, true)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(roomWithIdNotFound))
+		return
+	}
+
+	if r.Owner.ID != u.ID {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(forbiddenError))
+		return
+	}
+
+	r.SelectedContentId = contentID
+	err = roomdb.UpdateRoom(*r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(databaseError))
+		return
+	}
+
+	w.Write([]byte(genericOK))
+}
 
 func JoinRoomHandler(w http.ResponseWriter, req *http.Request) {
 	// check user is authenticated and get their id
@@ -86,9 +171,54 @@ func JoinRoomHandler(w http.ResponseWriter, req *http.Request) {
 	roomID := mux.Vars(req)["id"]
 
 	u, err := roomdb.GetUser(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(userWithIdNotFound))
+		return
+	}
+
+	r, err := roomdb.GetRoom(roomID, true)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(roomWithIdNotFound))
+		return
+	}
+
+	err = u.JoinRoom(r.ID)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(databaseError))
+		return
+	}
+
+	w.Write([]byte(genericOK))
 }
 
-func LeaveRoomHandler(w http.ResponseWriter, req *http.Request) {}
+func LeaveRoomHandler(w http.ResponseWriter, req *http.Request) {
+	// check user is authenticated and get their id
+	userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(forbiddenError))
+		return
+	}
+
+	u, err := roomdb.GetUser(userID)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		w.Write([]byte(userWithIdNotFound))
+		return
+	}
+
+	err = u.LeaveRoom()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(databaseError))
+		return
+	}
+
+	w.Write([]byte(genericOK))
+}
 
 func GetRoomDetailsHandler(w http.ResponseWriter, req *http.Request) {
 	// check user is authenticated and get their id

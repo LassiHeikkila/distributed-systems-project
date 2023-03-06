@@ -91,3 +91,31 @@ func (u *User) JoinRoom(id string) error {
 
 	return nil
 }
+
+func (u *User) LeaveRoom() error {
+	if dbHandle == nil {
+		return ErrNoDBConnection
+	}
+
+	roomID := u.RoomID
+	if roomID == "" {
+		return nil
+	}
+
+	err := dbHandle.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Model(&User{}).Where("id = ?", u.ID).Update("room_id", "").Error; err != nil {
+			return err
+		}
+		if err := tx.Model(&Room{}).Where("id = ?", roomID).Association("Members").Delete(u); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -10,6 +10,9 @@ const (
 	forbiddenError        = `{"ok":false,"msg":"access forbidden"}`
 	unimplementedError    = `{"ok":false,"msg":"unimplemented feature"}`
 	peerServerUnavailable = `{"ok":false","msg":"PeerJS server unavailable at this time, please try again later"}`
+
+	genericOK       = `{"ok":true}`
+	genericErrorFmt = `{"ok":false,"msg":"%s"}`
 )
 
 func NewOKResponseWithDetails(d map[string]any) map[string]any {
