@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 
@@ -15,6 +15,9 @@ import (
 
 const (
 	maxSignupBodyLen = 1024
+
+	FormKeyUsername = "username"
+	FormKeyPassword = "password"
 )
 
 func SignupHandler(w http.ResponseWriter, req *http.Request) {
@@ -26,24 +29,12 @@ func SignupHandler(w http.ResponseWriter, req *http.Request) {
 	// - password
 
 	// Don't want or need email, phone, personal info
+	req.ParseForm()
 
-	// Form should be sent as a JSON:
-	type signupForm struct {
-		Username string `json:"username"`
-		Password string `json:"password"`
-	}
+	username := req.Form.Get(FormKeyUsername)
+	password := req.Form.Get(FormKeyPassword)
 
-	b, _ := io.ReadAll(io.LimitReader(req.Body, maxSignupBodyLen))
-	defer req.Body.Close()
-
-	var f signupForm
-	if err := json.Unmarshal(b, &f); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		_, _ = w.Write([]byte(failedToParseRequest))
-		return
-	}
-
-	taken, err := accountdb.UsernameTaken(f.Username)
+	taken, err := accountdb.UsernameTaken(username)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		_, _ = w.Write([]byte(databaseError))
@@ -55,11 +46,11 @@ func SignupHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	pwHash := HashPassword(f.Password)
+	pwHash := HashPassword(password)
 
 	id, err := accountdb.CreateAccount(
 		accountdb.Account{
-			Username:     f.Username,
+			Username:     username,
 			PasswordHash: pwHash,
 		},
 	)
@@ -70,6 +61,32 @@ func SignupHandler(w http.ResponseWriter, req *http.Request) {
 	}
 
 	_, _ = w.Write([]byte(fmt.Sprintf(accountCreationSuccessFmt, id)))
+}
+
+func LoginHandler(w http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+
+	username := req.Form.Get(FormKeyUsername)
+	password := req.Form.Get(FormKeyPassword)
+
+	a, err := accountdb.GetAccountByUsername(username)
+	if err != nil {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	if !PasswordEqualsHash(password, a.PasswordHash) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	token, err := accountdb.CreateNewTokenForUserID(a.UserID, time.Now().Add(24*time.Hour))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Write([]byte(token))
 }
 
 func AccountInfoHandler(w http.ResponseWriter, req *http.Request) {

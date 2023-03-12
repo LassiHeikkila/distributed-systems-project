@@ -8,12 +8,14 @@
 : "${REDIS_JOB_QUEUE:?"REDIS_JOB_QUEUE is unset"}"
 : "${VIDEO_DOWNLOAD_PREFIX:?"VIDEO_DOWNLOAD_PREFIX is unset"}"
 : "${VIDEO_DETAILS_PREFIX:?"VIDEO_DETAILS_PREFIX is unset"}"
+: "${VIDEO_UPLOAD_URL:?"VIDEO_UPLOAD_URL is unset"}"
 
 # loop forever
 # pull job from the queue
 # executing appropriate job type
 
 while true; do
+    sleep 5
     echo "getting a new job from queue"
     
     if ! job="$(get-job-from-redis)"; then
@@ -21,10 +23,13 @@ while true; do
         exit 1
     fi
 
-    jobType="$(echo "${job}" | jq .jobType)"
-    jobID="$(echo "${job}" | jq .jobType)"
+    jobType="$(echo "${job}" | jq -r .jobType)"
+    jobID="$(echo "${job}" | jq -r .jobID)"
 
-    printf "running job (id: \"%s\") of type %s" "${jobID}" "${jobType}"
+    printf "running job (id: \"%s\") of type %s\n" "${jobID}" "${jobType}"
+
+    echo "DEBUG: job details:"
+    echo "${job}"
 
     if [ "${jobType}" = "transcode" ]; then
         run-transcoding-job "${job}" || echo "transcoding job failed!"

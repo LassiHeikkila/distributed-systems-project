@@ -2,8 +2,10 @@ package accountdb
 
 import (
 	"errors"
+	"fmt"
 
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -36,10 +38,10 @@ func Init() error {
 	}
 
 	if err := dbHandle.AutoMigrate(&Account{}); err != nil {
-		return err
+		return fmt.Errorf("error automigrating Account: %w", err)
 	}
 	if err := dbHandle.AutoMigrate(&AuthToken{}); err != nil {
-		return err
+		return fmt.Errorf("error automigrating AuthToken: %w", err)
 	}
 
 	// TODO: scan auth tokens and remove any that have expired

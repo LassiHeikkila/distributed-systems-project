@@ -2,10 +2,12 @@ package contentdb
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
+
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
@@ -21,21 +23,32 @@ var (
 // keep in mind that GORM somehow translates UpperCamelCase to upper_camel_case
 
 type Video struct {
-	gorm.Model
+	ContentID string `json:"contentID" gorm:"primaryKey;unique;not null;<-:create"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
 
-	FileID         string  `json:"fileID" gorm:"unique;not null;<-:create"`
-	OriginalFileID *string `json:"originalFileID"`
-	FileHash       string  `json:"fileHash"`
+	Files []VideoFile `gorm:"foreignKey:content_id"`
 
-	Name            string    `json:"name" gorm:"not null"`
-	License         string    `json:"license"`
-	Attribution     string    `json:"attribution"`
-	Uploaded        time.Time `json:"uploaded" gorm:"<-:create"`
-	Encoding        string    `json:"encoding"`
-	DurationSeconds int       `json:"durationSeconds"`
-	Resolution      string    `json:"resolution"`
-	FileSizeBytes   uint      `json:"fileSizeBytes"`
-	Category        string    `json:"category"`
+	Name            string `json:"name" gorm:"not null"`
+	License         string `json:"license"`
+	Attribution     string `json:"attribution"`
+	DurationSeconds int    `json:"durationSeconds"`
+	Category        string `json:"category"`
+}
+
+type VideoFile struct {
+	FileID    string `json:"fileID" gorm:"primaryKey;unique;not null;<-:create"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+
+	ContentID     string    `json:"contentID"`
+	Uploaded      time.Time `json:"uploaded" gorm:"<-:create"`
+	Encoding      string    `json:"encoding"`
+	Resolution    string    `json:"resolution"`
+	FileSizeBytes uint      `json:"fileSizeBytes"`
+	Hash          string    `json:"hash"`
 }
 
 func Connect(path string) error {
@@ -55,9 +68,11 @@ func Init() error {
 		return ErrNoDBConnection
 	}
 
-	err := dbHandle.AutoMigrate(&Video{})
-	if err != nil {
-		return err
+	if err := dbHandle.AutoMigrate(&Video{}); err != nil {
+		return fmt.Errorf("error automigrating Video table: %w", err)
+	}
+	if err := dbHandle.AutoMigrate(&VideoFile{}); err != nil {
+		return fmt.Errorf("error automigrating VideoFile table: %w", err)
 	}
 
 	return nil
@@ -79,9 +94,9 @@ func AddVideo(v Video) (string, error) {
 		return "", ErrNoDBConnection
 	}
 
-	// if v.FileID is not set, set it to a freshly generated UUID
-	if v.FileID == "" {
-		v.FileID = GenerateUUID()
+	// if v.ContentID is not set, set it to a freshly generated UUID
+	if v.ContentID == "" {
+		v.ContentID = GenerateUUID()
 	}
 
 	result := dbHandle.Create(&v)
@@ -89,7 +104,31 @@ func AddVideo(v Video) (string, error) {
 		return "", result.Error
 	}
 
-	return v.FileID, nil
+	return v.ContentID, nil
+}
+
+func AddVideoFile(vf VideoFile) error {
+	if dbHandle == nil {
+		return ErrNoDBConnection
+	}
+
+	err := dbHandle.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(&vf).Error; err != nil {
+			return err
+		}
+		var v Video
+		if err := tx.First(&v).Where("content_id = ?", vf.ContentID).Association("Files").Append(&vf); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to append video file to video: %w", err)
+	}
+
+	return nil
 }
 
 func GetVideo(id string) (*Video, error) {
@@ -98,7 +137,7 @@ func GetVideo(id string) (*Video, error) {
 	}
 
 	var v Video
-	result := dbHandle.First(&v, "file_id = ?", id)
+	result := dbHandle.Preload("Files").First(&v, "content_id = ?", id)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return nil, ErrVideoNotFound
 	}
@@ -109,6 +148,23 @@ func GetVideo(id string) (*Video, error) {
 	return &v, nil
 }
 
+func GetVideoFile(id string) (*VideoFile, error) {
+	if dbHandle == nil {
+		return nil, ErrNoDBConnection
+	}
+
+	var vf VideoFile
+	result := dbHandle.First(&vf, "file_id = ?", id)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, ErrVideoNotFound
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &vf, nil
+}
+
 func UpdateVideo(v Video) error {
 	if dbHandle == nil {
 		return ErrNoDBConnection
@@ -117,7 +173,7 @@ func UpdateVideo(v Video) error {
 	// updates modified fields, fails if row doesn't exist in DB yet.
 	var original Video
 
-	result := dbHandle.First(&original, "file_id = ?", v.FileID)
+	result := dbHandle.First(&original, "content_id = ?", v.ContentID)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return ErrVideoNotFound
 	} else if result.Error != nil {
@@ -134,7 +190,7 @@ func DeleteVideo(id string) error {
 		return ErrNoDBConnection
 	}
 
-	result := dbHandle.Delete(&Video{}, "file_id = ?", id)
+	result := dbHandle.Delete(&Video{}, "content_id = ?", id)
 	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 		return ErrVideoNotFound
 	}
@@ -170,7 +226,7 @@ func SearchVideos(searchOptions ...SearchOption) ([]Video, error) {
 	args := getArguments(searchOptions)
 
 	results := make([]Video, 0)
-	result := dbHandle.Where(clause, args...).Find(&results)
+	result := dbHandle.Preload("Files").Where(clause, args...).Find(&results)
 	if result.Error != nil {
 		return nil, result.Error
 	}

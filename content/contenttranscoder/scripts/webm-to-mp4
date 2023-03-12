@@ -9,15 +9,15 @@ in=$1
 out=$2
 
 if [ "${in#*.}" != "webm" ]; then
-    echo "Input file doesn't end in .mp4"
+    echo "Input file doesn't end in .webm"
     exit 1
 fi
 
 if [ "${out#*.}" != "mp4" ]; then
-    echo "Output file doesn't end in .webm"
+    echo "Output file doesn't end in .mp4"
     exit 1
 fi
 
 # Thanks trac.ffmpeg.org: https://trac.ffmpeg.org/wiki/Encode/H.264
 # This command encodes a video with good quality, using slower preset to achieve better compression
-ffmpeg -i "${in}" -c:v libx264 -preset slow -crf 25 -c:a copy "${out}"
+ffmpeg -y -i "${in}" -c:v libx264 -preset slow -crf 25 -c:a copy "${out}"

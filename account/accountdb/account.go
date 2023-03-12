@@ -55,6 +55,23 @@ func GetAccount(id string) (*Account, error) {
 	return &a, nil
 }
 
+func GetAccountByUsername(username string) (*Account, error) {
+	if dbHandle == nil {
+		return nil, ErrNoDBConnection
+	}
+
+	var a Account
+	result := dbHandle.First(&a, "username = ?", username)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, ErrAccountNotFound
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &a, nil
+}
+
 func UpdateAccount(a Account) error {
 	if dbHandle == nil {
 		return ErrNoDBConnection

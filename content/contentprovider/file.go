@@ -15,7 +15,7 @@ const (
 	contentTypeWebm      = "video/webm"
 )
 
-func SendVideo(w http.ResponseWriter, v *contentdb.Video) {
+func SendVideo(w http.ResponseWriter, v *contentdb.VideoFile) {
 	// for now all files in one dir identified by FileID
 
 	f, err := os.Open(path.Join(videoFileDirectory, v.FileID))

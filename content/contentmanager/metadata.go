@@ -38,3 +38,25 @@ func VideoMetadataHandler(w http.ResponseWriter, req *http.Request) {
 	// - logging
 	// - ???
 }
+
+func VideoFileMetadataHandler(w http.ResponseWriter, req *http.Request) {
+	id := mux.Vars(req)["id"]
+
+	v, err := contentdb.GetVideoFile(id)
+	if errors.Is(err, contentdb.ErrVideoNotFound) {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	} else if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	b, err := json.Marshal(v)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Add(contentTypeHeaderKey, contentTypeJson)
+	_, _ = w.Write(b)
+}

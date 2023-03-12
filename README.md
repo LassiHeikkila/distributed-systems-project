@@ -1,9 +1,35 @@
-## FLMnCHLL (Film-and-Chill)
+# FLMnCHLL (Film-and-Chill)
 
 Video streaming service where a small group of users can watch a video synchronously.
 Users can pause the video, and the stream will be paused for everyone.
 There will be a text chat feature to discuss the video/whatever.
 There will be a voice chat feature to discuss the video/whatever.
+
+## Pre-requisites
+1. `docker`
+2. `docker-compose`
+3. `bash`
+4. `npm`
+
+## Building
+1. `./build.sh`
+2. `docker compose up`
+
+
+
+## Required configuration
+Create a password for Redis and place it in `./conf/redis_password.env` like so:
+```console
+mypassword="supersecret"; echo "REDIS_PASSWORD=${mypassword}" > ./conf/redis_password.env
+```
+
+Create an internal API token for account service and place it in `./conf/account_service_secret.env` like so:
+```console
+token="mysecrettoken"; echo "account_service_internal_api_secret=${token}" > ./conf/account_service_secret.env
+```
+This is a shared secret used for internal communication by FLMnCHLL services. Don't expose it publicly.
+
+## Detailed description
 
 ### Components
 ![](flmnchll-architecture.png)

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 func cleanup() {
@@ -54,8 +55,8 @@ func TestVideoDB(t *testing.T) {
 	require.Nil(t, Init())
 
 	v1 := Video{
-		FileID: "file1",
-		Name:   "file1.mp4",
+		ContentID: "file1",
+		Name:      "file1.mp4",
 	}
 
 	id, err := AddVideo(v1)
@@ -65,7 +66,7 @@ func TestVideoDB(t *testing.T) {
 	v1_got, err := GetVideo("file1")
 	require.Nil(t, err)
 	// only check the fields we've set, stuff like ID and CreatedAt gets autopopulated
-	require.Equal(t, v1.FileID, v1_got.FileID)
+	require.Equal(t, v1.ContentID, v1_got.ContentID)
 	require.Equal(t, v1.Name, v1_got.Name)
 
 	v, err := GetVideo("file2")
@@ -99,8 +100,8 @@ func TestVideoAddDuplicateFileID(t *testing.T) {
 	require.Nil(t, Init())
 
 	v1 := Video{
-		FileID: "file1",
-		Name:   "file1.mp4",
+		ContentID: "file1",
+		Name:      "file1.mp4",
 	}
 
 	id, err := AddVideo(v1)
@@ -108,8 +109,8 @@ func TestVideoAddDuplicateFileID(t *testing.T) {
 	require.Nil(t, err)
 
 	v2 := Video{
-		FileID: "file1",
-		Name:   "file2.mp4",
+		ContentID: "file1",
+		Name:      "file2.mp4",
 	}
 
 	id2, err2 := AddVideo(v2)
@@ -133,40 +134,70 @@ func TestVideoDBSearch(t *testing.T) {
 
 	videos := []Video{
 		{
-			FileID:          "file1",
+			ContentID:       "content1",
+			CreatedAt:       mustParseTime("2023-01-31T07:28:00Z"),
 			Name:            "movie with title",
 			License:         "CC-BY 3.0",
 			Attribution:     "Famous producer",
-			Uploaded:        mustParseTime("2023-01-31T07:28:00Z"),
-			Encoding:        "mp4",
 			DurationSeconds: 90 * 60,
-			Resolution:      "1920x1080",
-			FileSizeBytes:   3 * 1024 * 1024 * 1024,
 			Category:        "movie",
+			Files: []VideoFile{
+				{
+					FileID:        "file1",
+					CreatedAt:     time.Time{},
+					UpdatedAt:     time.Time{},
+					DeletedAt:     gorm.DeletedAt{},
+					ContentID:     "content1",
+					Uploaded:      mustParseTime("2023-01-31T07:28:00Z"),
+					Encoding:      "mp4",
+					Resolution:    "1920x1080",
+					FileSizeBytes: 3 * 1024 * 1024 * 1024,
+				},
+			},
 		},
 		{
-			FileID:          "file2",
+			ContentID:       "content2",
+			CreatedAt:       mustParseTime("2023-01-21T07:28:00Z"),
 			Name:            "documentary with title",
 			License:         "CC-BY 3.0",
 			Attribution:     "Famous producer 2",
-			Uploaded:        mustParseTime("2023-01-21T07:28:00Z"),
-			Encoding:        "webm",
 			DurationSeconds: 60 * 60,
-			Resolution:      "1920x1080",
-			FileSizeBytes:   1024 * 1024 * 1024,
 			Category:        "documentary",
+			Files: []VideoFile{
+				{
+					FileID:        "file2",
+					CreatedAt:     time.Time{},
+					UpdatedAt:     time.Time{},
+					DeletedAt:     gorm.DeletedAt{},
+					ContentID:     "content2",
+					Uploaded:      mustParseTime("2023-01-21T07:28:00Z"),
+					Encoding:      "webm",
+					Resolution:    "1920x1080",
+					FileSizeBytes: 1024 * 1024 * 1024,
+				},
+			},
 		},
 		{
-			FileID:          "file3",
+			ContentID:       "content3",
+			CreatedAt:       mustParseTime("2023-01-11T07:28:00Z"),
 			Name:            "short film with title",
 			License:         "CC-BY 3.0",
 			Attribution:     "Famous producer",
-			Uploaded:        mustParseTime("2023-01-11T07:28:00Z"),
-			Encoding:        "mp4",
 			DurationSeconds: 15 * 60,
-			Resolution:      "1280x720",
-			FileSizeBytes:   256 * 1024 * 1024,
 			Category:        "movie",
+			Files: []VideoFile{
+				{
+					FileID:        "file3",
+					CreatedAt:     time.Time{},
+					UpdatedAt:     time.Time{},
+					DeletedAt:     gorm.DeletedAt{},
+					ContentID:     "content3",
+					Uploaded:      mustParseTime("2023-01-11T07:28:00Z"),
+					Encoding:      "mp4",
+					Resolution:    "1280x720",
+					FileSizeBytes: 256 * 1024 * 1024,
+				},
+			},
 		},
 	}
 
@@ -203,10 +234,6 @@ func TestVideoDBSearch(t *testing.T) {
 			SearchOptions: []SearchOption{SearchVideoByUploadedBeforeOrAfterDate(mustParseTime("2023-01-25T00:00:00Z"), false)},
 			Want:          []Video{videos[0]},
 		},
-		"search by encoding": {
-			SearchOptions: []SearchOption{SearchVideoByEncoding("mp4")},
-			Want:          []Video{videos[0], videos[2]},
-		},
 		"search by duration (>=)": {
 			SearchOptions: []SearchOption{SearchVideoByDuration(45*time.Minute, false)},
 			Want:          []Video{videos[0], videos[1]},
@@ -214,18 +241,6 @@ func TestVideoDBSearch(t *testing.T) {
 		"search by duration (<=)": {
 			SearchOptions: []SearchOption{SearchVideoByDuration(45*time.Minute, true)},
 			Want:          []Video{videos[2]},
-		},
-		"search by resolution": {
-			SearchOptions: []SearchOption{SearchVideoByResolution("1280x720")},
-			Want:          []Video{videos[2]},
-		},
-		"search by size (>= 1GB)": {
-			SearchOptions: []SearchOption{SearchVideoByFileSize(1024*1024*1024, false)},
-			Want:          []Video{videos[0], videos[1]},
-		},
-		"search by size (<= 1GB)": {
-			SearchOptions: []SearchOption{SearchVideoByFileSize(1024*1024*1024, true)},
-			Want:          []Video{videos[1], videos[2]},
 		},
 		"search by category": {
 			SearchOptions: []SearchOption{SearchVideoByCategory("documentary")},
@@ -238,10 +253,62 @@ func TestVideoDBSearch(t *testing.T) {
 			got, err := SearchVideos(tc.SearchOptions...)
 			require.Nil(t, err)
 			isMatch := compareSlices(tc.Want, got, func(a, b Video) bool {
-				return a.FileID == b.FileID
+				return a.ContentID == b.ContentID
 			})
 
 			require.True(t, isMatch, "expected: %v, got: %v", tc.Want, got)
 		})
 	}
+}
+
+func TestVideoFileAdd(t *testing.T) {
+	defer cleanup()
+
+	f, err := os.CreateTemp("", "contentdb-test-db")
+	if err != nil {
+		t.Fatal("failed to create temporary file for DB:", err)
+	}
+	defer os.Remove(f.Name())
+
+	require.Nil(t, Connect(f.Name()))
+	require.NotNil(t, dbHandle)
+
+	require.Nil(t, Init())
+
+	file1 := VideoFile{
+		FileID:        "video1.mp4",
+		ContentID:     "content1",
+		Encoding:      "mp4",
+		Resolution:    "1920x1080",
+		FileSizeBytes: 256 * 1024 * 1024,
+		Hash:          "sdfsdfsdf",
+	}
+	file2 := VideoFile{
+		FileID:        "video1.webm",
+		ContentID:     "content1",
+		Encoding:      "webm",
+		Resolution:    "1920x1080",
+		FileSizeBytes: 128 * 1024 * 1024,
+		Hash:          "dwdwdsf",
+	}
+
+	v1 := Video{
+		ContentID:       "content1",
+		Files:           []VideoFile{file1},
+		Name:            "some film",
+		License:         "example license",
+		Attribution:     "Carla the Creator",
+		DurationSeconds: 3600,
+		Category:        "movie",
+	}
+
+	id, err := AddVideo(v1)
+	require.Equal(t, "content1", id)
+	require.Nil(t, err)
+
+	err = AddVideoFile(file2)
+	require.Nil(t, err)
+
+	v, _ := GetVideo("content1")
+	require.Len(t, v.Files, 2)
 }

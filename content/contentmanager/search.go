@@ -38,11 +38,11 @@ func VideoSearchHandler(w http.ResponseWriter, req *http.Request) {
 		searchOpts = append(searchOpts, contentdb.SearchVideoByName(param))
 	}
 	if values.Has(searchKeyAttribution) {
-		param := values.Get(searchKeyName)
+		param := values.Get(searchKeyAttribution)
 		searchOpts = append(searchOpts, contentdb.SearchVideoByName(param))
 	}
 	if values.Has(searchKeyDuration) {
-		param := values.Get(searchKeyName)
+		param := values.Get(searchKeyDuration)
 		if strings.HasPrefix(param, searchParamGreaterThan) {
 			param = strings.TrimPrefix(param, searchParamGreaterThan)
 			d, err := time.ParseDuration(param)
@@ -63,11 +63,11 @@ func VideoSearchHandler(w http.ResponseWriter, req *http.Request) {
 		// TODO: default case?
 	}
 	if values.Has(searchKeyCategory) {
-		param := values.Get(searchKeyName)
+		param := values.Get(searchKeyCategory)
 		searchOpts = append(searchOpts, contentdb.SearchVideoByCategory(param))
 	}
 	if values.Has(searchKeyUploadedDate) {
-		param := values.Get(searchKeyName)
+		param := values.Get(searchKeyUploadedDate)
 		if strings.HasPrefix(param, searchParamGreaterThan) {
 			param = strings.TrimPrefix(param, searchParamGreaterThan)
 			t, err := time.Parse(time.RFC3339, param)
@@ -94,6 +94,7 @@ func VideoSearchHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	w.Header().Add("Content-Type", "application/json")
 	enc := json.NewEncoder(w)
 	_ = enc.Encode(videos)
 	// TODO: can we do something about possible error?

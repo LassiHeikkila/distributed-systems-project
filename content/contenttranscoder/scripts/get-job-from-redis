@@ -25,6 +25,8 @@ if [ -z "${REDIS_JOB_QUEUE}" ]; then
     exit 1
 fi
 
-export REDISCLI_AUTH=${REDIS_PASSWORD}
-
-redis.cli --user "${REDIS_USERNAME}" -h "${REDIS_HOST}" -p "${REDIS_PORT}" BLPOP "${REDIS_JOB_QUEUE}" 0 | tail -n +2
+if ! job="$(redis-cli --no-auth-warning -u "redis://${REDIS_USERNAME}:${REDIS_PASSWORD}@${REDIS_HOST}:${REDIS_PORT}" BLPOP "${REDIS_JOB_QUEUE}" 0 )"; then
+    exit 1;
+else
+    echo "${job}" | tail -n +2
+fi

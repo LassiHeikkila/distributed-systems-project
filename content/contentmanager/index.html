@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video upload</title>
+  </head>
+  <body>
+    <div id="root">
+        <div id="form-container">
+            <p>Upload video:</p>
+            <form method="post" action="/video/upload" enctype="multipart/form-data">
+                <div>
+                    <label for="title">Title: </label>
+                    <input type="text" id="title" name="title" /><br />
+                    
+                    <label for="license">License: </label>
+                    <input type="text" id="license" name="license" /><br />
+                    
+                    <label for="attribution">Attribution: </label>
+                    <input type="text" id="attribution" name="attribution" /><br />
+                    
+                    <label for="category">Category: </label>
+                    <input type="text" id="category" name="category" /><br />
+                </div>
+                <div>
+                    <label for="video_upload">Choose video to upload (WEBM, MP4)</label>
+                    <input
+                    type="file"
+                    id="video_upload"
+                    name="video_upload"
+                    accept=".mp4, .webm"
+                    />
+                </div>
+                <div>
+                    <button>Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+  </body>
+</html>

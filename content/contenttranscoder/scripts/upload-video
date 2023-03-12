@@ -1,3 +1,22 @@
 #!/bin/bash
 
-printf "This feature is not implemented yet!"
+# file name needs to end with .mp4, .webm, etc.
+file=$1
+details=$2
+
+contentID="$(echo "${details}" | jq -r .contentID)"
+
+# form should contain
+# - title
+# - license
+# - attribution
+# - category
+# - original file id
+# - file with key video_upload
+
+curl \
+    "${VIDEO_UPLOAD_URL}" \
+    -F "originalContentID=${contentID}" \
+    -F "video_upload=@${file}"
+
+rm "${file}"

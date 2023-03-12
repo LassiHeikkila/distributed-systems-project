@@ -4,9 +4,10 @@
     "name": "finnish_lapland_in_1950's (720p).mp4.webm",
     "license": "CC-BY 3.0",
     "attribution": "Veikko Itkonen",
+    "fileHash": "36123123638c12be9aa587e93cd18edfc9bc51a1c089ab2a19ee42beed9f497d",
     "uploaded": "2023-01-28T18:44:39Z",
     "encoding": "webm",
-    "duration": "7m6s",
+    "durationSeconds": 426,
     "resolution": "1280x720",
     "fileSizeBytes": 128976
 }

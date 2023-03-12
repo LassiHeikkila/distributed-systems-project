@@ -17,11 +17,6 @@ import (
 	"github.com/LassiHeikkila/flmnchll/helpers/httputils"
 )
 
-// globals
-var (
-	videoFileDirectory = ""
-)
-
 const (
 	serviceSecretEnvKey = "account_service_internal_api_secret"
 )
@@ -40,9 +35,8 @@ func main() {
 		fmt.Println("internal API secret is:", serviceSecret)
 	}
 
-	flag.StringVar(&dbPath, "db", "content.db", "Path to database file")
-	flag.StringVar(&videoFileDirectory, "contentDir", ".", "Directory where video files are stored")
-	flag.StringVar(&allowedCORSOrigins, "cors", "", "Comma-separated list of accepted CORS origins")
+	flag.StringVar(&dbPath, "db", "account.db", "Path to database file")
+	flag.StringVar(&allowedCORSOrigins, "cors", "*", "Comma-separated list of accepted CORS origins")
 	flag.UintVar(&httpPort, "httpPort", 8080, "HTTP port")
 
 	flag.Parse()
@@ -72,6 +66,9 @@ func main() {
 
 	// signup cannot require authentication (unless its some static API key known by the frontend)
 	r.HandleFunc("/account/signup", SignupHandler).
+		Methods(http.MethodPost)
+
+	r.HandleFunc("/account/login", LoginHandler).
 		Methods(http.MethodPost)
 
 	// look up account details based on token, will be used by other flmnchll services

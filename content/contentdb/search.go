@@ -29,15 +29,6 @@ func SearchVideoByLicense(lic string) SearchOption {
 	}
 }
 
-func SearchVideoByEncoding(enc string) SearchOption {
-	return func() SearchParameter {
-		return SearchParameter{
-			Clause:   "encoding = ?",
-			Argument: enc,
-		}
-	}
-}
-
 func SearchVideoByDuration(dur time.Duration, shorter bool) SearchOption {
 	return func() SearchParameter {
 		if shorter {
@@ -57,22 +48,13 @@ func SearchVideoByUploadedBeforeOrAfterDate(t time.Time, before bool) SearchOpti
 	return func() SearchParameter {
 		if before {
 			return SearchParameter{
-				Clause:   "uploaded <= ?",
+				Clause:   "created_at <= ?",
 				Argument: t,
 			}
 		}
 		return SearchParameter{
-			Clause:   "uploaded >= ?",
+			Clause:   "created_at >= ?",
 			Argument: t,
-		}
-	}
-}
-
-func SearchVideoByResolution(res string) SearchOption {
-	return func() SearchParameter {
-		return SearchParameter{
-			Clause:   "resolution = ?",
-			Argument: res,
 		}
 	}
 }
@@ -91,21 +73,6 @@ func SearchVideoByAttribution(attr string) SearchOption {
 		return SearchParameter{
 			Clause:   "attribution LIKE ?",
 			Argument: attr,
-		}
-	}
-}
-
-func SearchVideoByFileSize(limit uint64, lower bool) SearchOption {
-	return func() SearchParameter {
-		if lower {
-			return SearchParameter{
-				Clause:   "file_size_bytes <= ?",
-				Argument: limit,
-			}
-		}
-		return SearchParameter{
-			Clause:   "file_size_bytes >= ?",
-			Argument: limit,
 		}
 	}
 }

@@ -10,7 +10,7 @@ fi
 
 in=$1
 out=$2
-currentRes="$(./get-resolution.sh "${in}")"
+currentRes="$(get-resolution "${in}")"
 targetRes=$3
 
 isSupportedRes() {
@@ -39,6 +39,6 @@ if [ "${currentRes}" = "${targetRes}" ]; then
 fi
 
 # Thanks Superuser.com: https://superuser.com/a/624564
-ffmpeg -i "${in}" -filter:v scale="${targetRes}" -c:a copy "${out}"
+ffmpeg -y -i "${in}" -filter:v scale="${targetRes}" -c:a copy "${out}"
 
 

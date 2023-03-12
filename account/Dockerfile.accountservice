@@ -1,4 +1,4 @@
-FROM golang AS build
+FROM golang:1.19 AS build
 
 WORKDIR /build
 COPY go.mod /build/go.mod
@@ -11,7 +11,11 @@ COPY accountservice /build/accountservice
 
 RUN go build -o account-service ./accountservice
 
-FROM ubuntu AS ship
+FROM ubuntu:22.04 AS ship
 
 WORKDIR /app
 COPY --from=build /build/account-service /app
+
+RUN mkdir -p /data
+
+ENTRYPOINT [ "/app/account-service", "-db", "/data/account.db" ]

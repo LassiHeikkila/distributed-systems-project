@@ -1,8 +1,39 @@
 #!/bin/bash
 
-printf "This feature is not implemented yet!"
+job="$1"
 
-# wait for a job from the queue
+jobID="$(echo "${job}" | jq -r .jobID)"
+printf "got job with id \"%s\" from work queue\n" "${jobID}"
+
+jobType="$(echo "${job}" | jq -r .jobType)"
+
+if [ "${jobType}" != "downscale" ]; then
+    printf "unexpected job type \"%s\"!\n" "${jobType}"
+    exit 1
+fi
+
+targetResolution="$(echo "${job}" | jq -r .job.targetResolution)"
+fileID="$(echo "${job}" | jq -r .job.fileID)"
+
+# fetch details about the video file
+if ! videoDetails="$(get-file-details "${fileID}")"; then   
+    echo "failed to fetch video details!"
+    exit 1
+fi
+
+# get encoding, file extension needed by server when receiving file
+fileEncoding=$(echo "${videoDetails}" | jq -r .encoding)
+
+# create empty temp files for converted file
+targetFile="$(mktemp tmpvideofileXXXXX."${fileEncoding}")"
+
 # download original video
-# downscale to target res
+if ! download-video "${fileID}" "${fileID}"; then
+    echo "failed to download video file!"
+    exit 1
+fi
+
+downscale-video "${fileID}" "${targetFile}" "${targetResolution}"
+
 # upload result
+upload-video "${targetFile}" "${videoDetails}"

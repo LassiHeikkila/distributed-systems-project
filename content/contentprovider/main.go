@@ -41,6 +41,7 @@ func main() {
 		fmt.Println("error connecting to database:", err)
 		return
 	}
+	defer contentdb.Disconnect()
 
 	if err := contentdb.Init(); err != nil {
 		fmt.Println("error initializing database:", err)
