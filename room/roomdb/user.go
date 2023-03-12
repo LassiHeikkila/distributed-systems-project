@@ -2,6 +2,7 @@ package roomdb
 
 import (
 	"errors"
+	"log"
 	"time"
 
 	"gorm.io/gorm"
@@ -51,6 +52,23 @@ func GetUser(id string) (*User, error) {
 	return &u, nil
 }
 
+func GetUserByName(username string) (*User, error) {
+	if dbHandle == nil {
+		return nil, ErrNoDBConnection
+	}
+
+	var u User
+	result := dbHandle.First(&u, "name = ?", username)
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, ErrAccountNotFound
+	}
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &u, nil
+}
+
 func DeleteUser(id string) error {
 	if dbHandle == nil {
 		return ErrNoDBConnection
@@ -72,13 +90,15 @@ func (u *User) JoinRoom(id string) error {
 		return ErrNoDBConnection
 	}
 
+	log.Printf("adding user %s to room %s\n", u.Name, id)
+
 	u.RoomID = id
 
 	err := dbHandle.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&User{}).Where("id = ?", u.ID).Update("room_id", id).Error; err != nil {
+		if err := tx.Model(u).Update("room_id", id).Error; err != nil {
 			return err
 		}
-		if err := tx.Model(&Room{}).Where("id = ?", id).Association("Members").Append(u); err != nil {
+		if err := tx.First(&Room{}).Where("id = ?", id).Association("Members").Append(u); err != nil {
 			return err
 		}
 
@@ -97,16 +117,21 @@ func (u *User) LeaveRoom() error {
 		return ErrNoDBConnection
 	}
 
+	log.Printf("removing user %s from room %s\n", u.Name, u.RoomID)
+
 	roomID := u.RoomID
 	if roomID == "" {
 		return nil
 	}
+	r, _ := GetRoom(roomID, false)
 
 	err := dbHandle.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Model(&User{}).Where("id = ?", u.ID).Update("room_id", "").Error; err != nil {
+		if err := tx.Model(u).Update("room_id", "").Error; err != nil {
+			log.Println("1")
 			return err
 		}
-		if err := tx.Model(&Room{}).Where("id = ?", roomID).Association("Members").Delete(u); err != nil {
+		if err := tx.Model(r).Association("Members").Delete(u); err != nil {
+			log.Println("2")
 			return err
 		}
 

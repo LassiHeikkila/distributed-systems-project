@@ -158,23 +158,22 @@ func SetRoomSelectedContentHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func JoinRoomHandler(w http.ResponseWriter, req *http.Request) {
-	// check user is authenticated and get their id
-	userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
-	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(forbiddenError))
-		return
-	}
+	// // check user is authenticated and get their id
+	// userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusForbidden)
+	// 	w.Write([]byte(forbiddenError))
+	// 	return
+	// }
 
-	// get room id from query parameters
-	// account id in URL variables
+	// get room id from path
+	// username also in path for now
 	roomID := mux.Vars(req)["id"]
+	username := mux.Vars(req)["username"]
 
-	u, err := roomdb.GetUser(userID)
-	if err != nil {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(userWithIdNotFound))
-		return
+	u, _ := roomdb.GetUserByName(username)
+	if u == nil {
+		u, _ = roomdb.CreateUser(roomdb.GenerateUUID(), username)
 	}
 
 	r, err := roomdb.GetRoom(roomID, true)
@@ -195,15 +194,16 @@ func JoinRoomHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func LeaveRoomHandler(w http.ResponseWriter, req *http.Request) {
-	// check user is authenticated and get their id
-	userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
-	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(forbiddenError))
-		return
-	}
+	// // check user is authenticated and get their id
+	// userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusForbidden)
+	// 	w.Write([]byte(forbiddenError))
+	// 	return
+	// }
+	username := mux.Vars(req)["username"]
 
-	u, err := roomdb.GetUser(userID)
+	u, err := roomdb.GetUserByName(username)
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(userWithIdNotFound))
@@ -221,13 +221,13 @@ func LeaveRoomHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 func GetRoomDetailsHandler(w http.ResponseWriter, req *http.Request) {
-	// check user is authenticated and get their id
-	userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
-	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(forbiddenError))
-		return
-	}
+	// // check user is authenticated and get their id
+	// userID, err := accountclient.ValidateUserToken(httputils.GetAuthToken(req))
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusForbidden)
+	// 	w.Write([]byte(forbiddenError))
+	// 	return
+	// }
 
 	// get room id from query parameters
 	// account id in URL variables
@@ -241,24 +241,24 @@ func GetRoomDetailsHandler(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	userIsMember := func() bool {
-		for _, u := range r.Members {
-			if u.ID == userID {
-				return true
-			}
-		}
-		return false
-	}
+	// userIsMember := func() bool {
+	// 	for _, u := range r.Members {
+	// 		if u.ID == userID {
+	// 			return true
+	// 		}
+	// 	}
+	// 	return false
+	// }
 
-	userIsOwner := func() bool {
-		return r.Owner.ID == userID
-	}
+	// userIsOwner := func() bool {
+	// 	return r.Owner.ID == userID
+	// }
 
-	if !userIsMember() || !userIsOwner() {
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(forbiddenError))
-		return
-	}
+	// if !userIsMember() || !userIsOwner() {
+	// 	w.WriteHeader(http.StatusForbidden)
+	// 	w.Write([]byte(forbiddenError))
+	// 	return
+	// }
 
 	// return room details
 	e := json.NewEncoder(w)

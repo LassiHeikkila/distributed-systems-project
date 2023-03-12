@@ -14,8 +14,25 @@ There will be a voice chat feature to discuss the video/whatever.
 ## Building
 1. `./build.sh`
 2. `docker compose up`
+3. Build and run frontend in a separate window: `cd frontend; npm run dev`
+   - May need to install dependencies first by running `npm install` in `frontend` directory
 
+## Running
+### Upload content
+Open `http://localhost:8080` in your browser
+Use the form to upload some `mp4` or `webm` video.
 
+You will see in container logs that `content-manager` received the file and launched some transcoding and downscaling jobs.
+
+```
+flmnchll-content-manager-1     | 2023/03/12 16:43:20 processing uploaded video with id 8682c316-0fc9-4f01-8444-5da0cf25e359
+flmnchll-content-manager-1     | 2023/03/12 16:43:20 submitting downscaling job with id: 040bd582-6df0-49f1-9e30-ee9bb5ab46ca
+flmnchll-content-manager-1     | 2023/03/12 16:43:20 submitting downscaling job with id: f0d98021-a492-48cc-bb00-0caa99b88610
+flmnchll-content-manager-1     | 2023/03/12 16:43:20 submitting transcoding job with id: c8c34591-41e1-436a-8e9b-748959a5dcca
+
+```
+
+Note down the content id from the "processing uploaded video with id ..." line.
 
 ## Required configuration
 Create a password for Redis and place it in `./conf/redis_password.env` like so:
