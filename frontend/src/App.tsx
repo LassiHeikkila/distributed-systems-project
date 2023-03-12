@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react'
 import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
+import PeerJs from 'peerjs'
 
 import './App.css'
+
+let peer: PeerJs;
+let connection: PeerJs.DataConnection;
 
 function App() {
   const [username, setUsername] = useState("");
@@ -11,6 +15,8 @@ function App() {
   const [availableContent, setAvailableContent] = useState([]);
   const [roomDetails, setRoomDetails] = useState(null);
   const [peerServer, setPeerServer] = useState("");
+  const [peerServerConnected, setPeerServerConnected] = useState(false);
+  const [availablePeer, setAvailablePeer] = useState(peer);
 
   const [timer, setTimer] = useState(0);
 
@@ -80,6 +86,16 @@ function App() {
       setContentID(availableContent[0]['contentID']);
     }
   }, [availableContent]);
+
+  useEffect(() => {
+    if (peerServer != "" && !peerServerConnected) {
+      setAvailablePeer(new PeerJs(username, {
+        host: peerServer,
+        path: '/',
+        port: 9000,
+      }))
+    }
+  }, [username, peerServer, peerServerConnected]);
 
   useEffect(() => {
     if (roomDetails == null) {
