@@ -70,7 +70,7 @@ The user enters the room with username `TeppoTestaaja` from the left window, and
 
 After entering the room, the frontend shows to both users that they are in the room with another user (and hardcoded `admin` user)
 
-Finally, `KalleKoodari` starts viewing the video that was previously uploaded to the service (the same one uploaded in backend demo).
+Finally, `KalleKoodari` starts viewing the video that was previously uploaded to the service. *Note: This does not cause TeppoTestaaja to start viewing the same video currently. In finished project it would. Teppo chose to watch another video.*
 
 ## Pre-requisites
 1. `docker`

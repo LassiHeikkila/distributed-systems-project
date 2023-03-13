@@ -56,7 +56,7 @@ func GetRoom(id string, short bool) (*Room, error) {
 			return nil, result.Error
 		}
 	} else {
-		result := dbHandle.First(&r, "id = ?", id)
+		result := dbHandle.Preload("Owner").Preload("Members").First(&r, "id = ?", id)
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrAccountNotFound
 		}
