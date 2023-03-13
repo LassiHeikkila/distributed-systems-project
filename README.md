@@ -46,6 +46,32 @@ Containers (see [`content-transcoder`](content/contenttranscoder)) capable of ru
 
 Multiple users can join the same room and they will see each other's username pop up. However, as the system currently runs only on localhost, it's not very impressive :sweat_smile:
 
+### Demo
+
+#### Backend: Building and running
+In this recording, the containers are build and launched.
+
+When the stack is up, a user uploads a video using the `content-manager` upload form. 
+
+A container pulls the generated transcoding job from the queue and executes it. 
+
+When finished, the final transcoded video is uploaded to `content-manager`.
+
+In real-time, the recording took about 20 minutes to complete (transcoding is a lot of work for a laptop), but idle time is cut out form the recording.
+
+Note: Automatic downscaling was not done for this video due to it's unusual resolution (960x528). Only standard 1080p and 720p resolution videos are downscaled automatically to 720p and 480p, to avoid weird scaling.
+
+[![asciicast](https://asciinema.org/a/567088.svg)](https://asciinema.org/a/567088)
+
+#### Frontend: Joining demo room from two windows
+In this recording, two instances of the frontend are open in separate browser windows.
+
+The user enters the room with username `TeppoTestaaja` from the left window, and with username `KalleKoodari` from the right window.
+
+After entering the room, the frontend shows to both users that they are in the room with another user (and hardcoded `admin` user)
+
+Finally, `KalleKoodari` starts viewing the video that was previously uploaded to the service (the same one uploaded in backend demo).
+
 ## Pre-requisites
 1. `docker`
 2. `docker-compose`
