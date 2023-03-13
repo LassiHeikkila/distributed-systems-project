@@ -72,6 +72,8 @@ After entering the room, the frontend shows to both users that they are in the r
 
 Finally, `KalleKoodari` starts viewing the video that was previously uploaded to the service. *Note: This does not cause TeppoTestaaja to start viewing the same video currently. In finished project it would. Teppo chose to watch another video.*
 
+[flmnchll-frontend-poc-demo.webm](https://user-images.githubusercontent.com/10546142/224815057-60efdf8c-09da-4aca-88e6-b6d12a44fd03.webm)
+
 ## Pre-requisites
 1. `docker`
 2. `docker-compose`
