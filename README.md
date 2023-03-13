@@ -2,14 +2,17 @@
 
 ## Project idea
 Video streaming service where a small group of users can watch a video synchronously.
+
 Users can pause the video, and the stream will be paused for everyone.
+
 There will be a text chat feature to discuss the video/whatever.
+
 There will be a voice chat feature to discuss the video/whatever.
 
-## Current state
+# Current state
 Due to time contraints and overly optimistic plans, the project is nowhere near finished at the deadline.
 
-What is working:
+### What is working
 - content uploading
 - automatic content transcoding and downscaling
 - serving video
@@ -20,8 +23,7 @@ What is working:
     - not done automatically on commit/push
   - launching containers with `docker compose up`
 
-
-What is started:
+### What is started
 - simple PoC frontend
 - simple content delivery network
 - `room-service`
@@ -30,25 +32,27 @@ What is started:
 - `account-service`
   - exists but not integrated into anything else yet
 
-What is missing (almost) completely:
+### What is missing (almost) completely
 - public deployment
 - peer to peer communication 
   - chat
   - voice
 - kubernetes use
 
-### What is *distributed* about the current solution?
+## What is *distributed* about the current solution?
 When a user uploads a video to the [`content-manager`](content/contentmanager) service, the service submits transcoding and downscaling jobs to a work queue (implemented as a list in Redis).
 
-Containers (see [`content-transcoder`](content/contenttranscoder)) capable of running the jobs can pull a job from the queue, execute it, and upload the resulting downscaled/transcoded video back to `content-manager`. 
+Containers (see [`content-transcoder`](content/contenttranscoder)) capable of running the jobs can pull a job from the queue, execute it, and upload the resulting downscaled/transcoded video back to `content-manager`.
+
+The containers run independently of each other, only communicating via the work queue. Video are uploaded and downloaded via a HTTP interface.
 
 `content-manager` links information about the uploaded video to the original content.
 
 Multiple users can join the same room and they will see each other's username pop up. However, as the system currently runs only on localhost, it's not very impressive :sweat_smile:
 
-### Demo
+# Demo
 
-#### Backend: Building and running
+## Backend: Building and running
 In this recording, the containers are build and launched.
 
 When the stack is up, a user uploads a video using the `content-manager` upload form. 
@@ -63,7 +67,7 @@ Note: Automatic downscaling was not done for this video due to it's unusual reso
 
 [![asciicast](https://asciinema.org/a/567088.svg)](https://asciinema.org/a/567088)
 
-#### Frontend: Joining demo room from two windows
+## Frontend: Joining demo room from two windows
 In this recording, two instances of the frontend are open in separate browser windows.
 
 The user enters the room with username `TeppoTestaaja` from the left window, and with username `KalleKoodari` from the right window.
@@ -74,11 +78,23 @@ Finally, `KalleKoodari` starts viewing the video that was previously uploaded to
 
 [flmnchll-frontend-poc-demo.webm](https://user-images.githubusercontent.com/10546142/224815057-60efdf8c-09da-4aca-88e6-b6d12a44fd03.webm)
 
+# Instructions for building and running locally
 ## Pre-requisites
 1. `docker`
 2. `docker-compose`
 3. `bash`
-4. `npm`
+
+## Required configuration
+Create a password for Redis and place it in `./conf/redis_password.env` like so:
+```console
+mypassword="supersecret"; echo "REDIS_PASSWORD=${mypassword}" > ./conf/redis_password.env
+```
+
+Create an internal API token for account service and place it in `./conf/account_service_secret.env` like so:
+```console
+token="mysecrettoken"; echo "account_service_internal_api_secret=${token}" > ./conf/account_service_secret.env
+```
+This is a shared secret used for internal communication by FLMnCHLL services. Don't expose it publicly. *Note: account-service is not used by other services at this stage*
 
 ## Building
 1. `./build.sh`
@@ -98,20 +114,6 @@ flmnchll-content-manager-1     | 2023/03/12 16:43:20 submitting downscaling job 
 flmnchll-content-manager-1     | 2023/03/12 16:43:20 submitting transcoding job with id: c8c34591-41e1-436a-8e9b-748959a5dcca
 
 ```
-
-Note down the content id from the "processing uploaded video with id ..." line.
-
-## Required configuration
-Create a password for Redis and place it in `./conf/redis_password.env` like so:
-```console
-mypassword="supersecret"; echo "REDIS_PASSWORD=${mypassword}" > ./conf/redis_password.env
-```
-
-Create an internal API token for account service and place it in `./conf/account_service_secret.env` like so:
-```console
-token="mysecrettoken"; echo "account_service_internal_api_secret=${token}" > ./conf/account_service_secret.env
-```
-This is a shared secret used for internal communication by FLMnCHLL services. Don't expose it publicly.
 
 ## Detailed description
 
@@ -162,36 +164,57 @@ It will be built using React+Typescript+Vite.
 
 Frontend handles synchronization across peers.
 
+See [here](frontend/).
+
 #### account-service
 Used for login, request authentication, etc.
 
+See [here](account/).
+
 #### room-service
 Room must have associated PeerJS server.
+
 Room keeps track of users in it
+
 Should be possible to password/pin protect a room to prevent randoms joining.
+
 Room keeps info about what is being watched, tracks progress
+
+See [here](room/).
 
 #### content-manager
 When video in `webm` format is uploaded, trigger `content-transcoder` service to transcode it to `mp4`.
+
 When video in `mp4` format is uploaded, trigger `content-transcoder` service to transcode it to `webm`.
+
 Also trigger downscaling jobs as needed.
 
+See [here](content/contentmanager/).
+
 #### content-provider
-Subtitles?
+`content-provider` will act like a content delivery network edge location, serving static data and videos. It is work-in-progress.
 
 #### content-transcoder
 Automatically downscale & transcode video files.
+
 There should be a work queue where content-transcoder instances can get jobs from.
+
 Work queue could be a [redis `list`](https://redis.io/docs/data-types/lists/).
 
 We probably want 480p, 720p, 1080p, (2160p) versions.
+
 Also want mp4 and webm version of each video.
 
 When conversion is ready, `content-manager` should be told about it.
 
 Input file should be downscaled to any missing resolution below the original resolution.
+
 Upscaling is not necessary.
 
 Content transcoder container needs read access to the work queues from redis.
+
 At least one container should be running transcoding jobs.
+
 At least one container should be running downscaling jobs.
+
+See [here](content/contenttranscoder/).
