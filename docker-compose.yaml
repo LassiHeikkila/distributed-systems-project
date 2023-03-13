@@ -57,6 +57,12 @@ services:
       - PEERJS_ADDR=localhost:9000
       - ACCOUNT_SERVICE_ADDR=http://account-service:8080
 
+  frontend:
+    image: "flmnchll/frontend:${FLMNCHLL_VERSION_TAG}"
+    restart: always
+    ports: 
+      - 5173:5173
+
   redis:
     image: "redis:7-alpine"
     restart: always

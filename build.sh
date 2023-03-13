@@ -13,5 +13,5 @@ cd account && ./build-images.sh "${version}" && cd -
 echo "Building Docker images in room/..."
 cd room && ./build-images.sh "${version}" && cd -
 
-# echo "Building frontend"
-# cd frontend && npm run build && cd -
+echo "Building frontend"
+cd frontend && ./build-images.sh && cd -

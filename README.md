@@ -1,9 +1,50 @@
 # FLMnCHLL (Film-and-Chill)
 
+## Project idea
 Video streaming service where a small group of users can watch a video synchronously.
 Users can pause the video, and the stream will be paused for everyone.
 There will be a text chat feature to discuss the video/whatever.
 There will be a voice chat feature to discuss the video/whatever.
+
+## Current state
+Due to time contraints and overly optimistic plans, the project is nowhere near finished at the deadline.
+
+What is working:
+- content uploading
+- automatic content transcoding and downscaling
+- serving video
+- serving video metadata
+- trivially easy local deployment
+  - (mostly) automatic container builds
+    - user needs to launch the build script manually (`./build.sh`)
+    - not done automatically on commit/push
+  - launching containers with `docker compose up`
+
+
+What is started:
+- simple PoC frontend
+- simple content delivery network
+- `room-service`
+  - hardcoded example room that user can join using the PoC frontend
+  - authentication/authorization missing
+- `account-service`
+  - exists but not integrated into anything else yet
+
+What is missing (almost) completely:
+- public deployment
+- peer to peer communication 
+  - chat
+  - voice
+- kubernetes use
+
+### What is *distributed* about the current solution?
+When a user uploads a video to the [`content-manager`](content/contentmanager) service, the service submits transcoding and downscaling jobs to a work queue (implemented as a list in Redis).
+
+Containers (see [`content-transcoder`](content/contenttranscoder)) capable of running the jobs can pull a job from the queue, execute it, and upload the resulting downscaled/transcoded video back to `content-manager`. 
+
+`content-manager` links information about the uploaded video to the original content.
+
+Multiple users can join the same room and they will see each other's username pop up. However, as the system currently runs only on localhost, it's not very impressive :sweat_smile:
 
 ## Pre-requisites
 1. `docker`
@@ -14,8 +55,6 @@ There will be a voice chat feature to discuss the video/whatever.
 ## Building
 1. `./build.sh`
 2. `docker compose up`
-3. Build and run frontend in a separate window: `cd frontend; npm run dev`
-   - May need to install dependencies first by running `npm install` in `frontend` directory
 
 ## Running
 ### Upload content

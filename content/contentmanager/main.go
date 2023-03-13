@@ -113,6 +113,8 @@ func main() {
 		}
 	}()
 
+	log.Printf("Open http://localhost:%d in your browser to add videos\n", httpPort)
+
 	<-ctx.Done()
 
 	log.Println("shutting down HTTP server")
